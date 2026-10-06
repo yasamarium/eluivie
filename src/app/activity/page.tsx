@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Activity as ActivityIcon, Filter } from 'lucide-react';
+import { Activity as ActivityIcon } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { ActivityFeed } from '@/components/ActivityFeed';
+import { AuthScreen } from '@/components/AuthScreen';
 
 export default function ActivityPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -14,12 +15,28 @@ export default function ActivityPage() {
   useEffect(() => {
     async function load() {
       try {
+        if (typeof window !== 'undefined') {
+          const cached = localStorage.getItem('eluivie_user');
+          if (cached) {
+            try {
+              setCurrentUser(JSON.parse(cached));
+            } catch {}
+          }
+        }
+
         const [uRes, aRes] = await Promise.all([
           fetch('/api/auth/me'),
           fetch('/api/activity'),
         ]);
         const u = await uRes.json();
-        if (u.authenticated) setCurrentUser(u.user);
+        if (u.authenticated) {
+          setCurrentUser(u.user);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('eluivie_user', JSON.stringify(u.user));
+          }
+        } else {
+          setCurrentUser(null);
+        }
 
         const a = await aRes.json();
         if (a.feed) setActivities(a.feed);
@@ -31,6 +48,25 @@ export default function ActivityPage() {
     }
     load();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-neutral-100 flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Auth Wall
+  if (!currentUser) {
+    return (
+      <AuthScreen
+        onAuthSuccess={(user) => {
+          setCurrentUser(user);
+        }}
+      />
+    );
+  }
 
   const filtered = activities.filter((act) => {
     if (typeFilter === 'all') return true;
@@ -83,15 +119,7 @@ export default function ActivityPage() {
           </div>
         </div>
 
-        {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3, 4].map((n) => (
-              <div key={n} className="h-16 rounded-2xl bg-neutral-900/40 animate-pulse border border-white/[0.04]" />
-            ))}
-          </div>
-        ) : (
-          <ActivityFeed items={filtered} />
-        )}
+        <ActivityFeed items={filtered} />
       </main>
     </div>
   );

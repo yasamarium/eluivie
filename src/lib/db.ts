@@ -212,6 +212,15 @@ export async function getUserByUsername(username: string): Promise<UserRecord | 
   return res ? (res.data as UserRecord) : null;
 }
 
+export async function getUserByIdentifier(identifier: string): Promise<UserRecord | null> {
+  const clean = identifier.toLowerCase().trim();
+  if (clean.includes('@')) {
+    const all = await listAllUsers();
+    return all.find((u) => u.email.toLowerCase() === clean) || null;
+  }
+  return await getUserByUsername(clean);
+}
+
 export async function saveUser(user: UserRecord): Promise<void> {
   const cleanUsername = user.username.toLowerCase().trim();
   await saveToGitHub(

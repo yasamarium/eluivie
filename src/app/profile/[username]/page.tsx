@@ -21,6 +21,7 @@ import {
 import { Navbar } from '@/components/Navbar';
 import { ContributionGraph } from '@/components/ContributionGraph';
 import { ActivityFeed } from '@/components/ActivityFeed';
+import { AuthScreen } from '@/components/AuthScreen';
 
 export default function ProfilePage({
   params,
@@ -137,6 +138,17 @@ export default function ProfilePage({
       <div className="min-h-screen bg-black text-neutral-100 flex items-center justify-center">
         <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
       </div>
+    );
+  }
+
+  // Auth Wall
+  if (!currentUser) {
+    return (
+      <AuthScreen
+        onAuthSuccess={(user) => {
+          setCurrentUser(user);
+        }}
+      />
     );
   }
 

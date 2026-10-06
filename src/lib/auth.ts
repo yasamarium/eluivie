@@ -65,38 +65,4 @@ export async function logoutUser(): Promise<void> {
   }
 }
 
-/**
- * Ensures the default owner superadmin account exists in the database repo
- */
-export async function ensureOwnerAccount(): Promise<UserRecord> {
-  const owner = 'yasamarium';
-  let user = await getUserByUsername(owner);
 
-  if (!user) {
-    const hashedPassword = await hashPassword('eluivie2026');
-    user = {
-      id: 'usr_yasamarium',
-      username: owner,
-      email: 'yasamarium@eluivie.local',
-      passwordHash: hashedPassword,
-      name: 'Yasamarium',
-      bio: 'Architect & Creator of Eluivie • Minimalist iOS-Themed Git Ecosystem',
-      avatarUrl: 'https://avatars.githubusercontent.com/u/104193851?v=4',
-      website: 'https://github.com/yasamarium',
-      location: 'Earth',
-      createdAt: new Date().toISOString(),
-      followers: [],
-      following: [],
-      starredRepos: ['eluivie'],
-      isVerified: true,
-    };
-    await saveUser(user);
-    await logActivity({
-      type: 'user_registered',
-      actor: owner,
-      details: 'Superadmin account initialized',
-    });
-  }
-
-  return user;
-}

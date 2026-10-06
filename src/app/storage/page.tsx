@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { StorageUploadModal } from '@/components/StorageUploadModal';
+import { AuthScreen } from '@/components/AuthScreen';
 
 export default function StoragePage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -27,12 +28,28 @@ export default function StoragePage() {
 
   const loadAssets = async () => {
     try {
+      if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem('eluivie_user');
+        if (cached) {
+          try {
+            setCurrentUser(JSON.parse(cached));
+          } catch {}
+        }
+      }
+
       const [uRes, aRes] = await Promise.all([
         fetch('/api/auth/me'),
         fetch('/api/storage/assets'),
       ]);
       const u = await uRes.json();
-      if (u.authenticated) setCurrentUser(u.user);
+      if (u.authenticated) {
+        setCurrentUser(u.user);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('eluivie_user', JSON.stringify(u.user));
+        }
+      } else {
+        setCurrentUser(null);
+      }
 
       const a = await aRes.json();
       if (a.assets) setAssets(a.assets);
@@ -52,6 +69,25 @@ export default function StoragePage() {
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-neutral-100 flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Auth Wall
+  if (!currentUser) {
+    return (
+      <AuthScreen
+        onAuthSuccess={(user) => {
+          setCurrentUser(user);
+        }}
+      />
+    );
+  }
 
   const filteredAssets = assets.filter((a) =>
     a.name.toLowerCase().includes(search.toLowerCase())

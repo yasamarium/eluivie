@@ -29,6 +29,7 @@ import { Navbar } from '@/components/Navbar';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { FileEditorModal } from '@/components/FileEditorModal';
 import { StorageUploadModal } from '@/components/StorageUploadModal';
+import { AuthScreen } from '@/components/AuthScreen';
 
 export default function RepoDetailPage({
   params,
@@ -267,6 +268,17 @@ export default function RepoDetailPage({
     );
   }
 
+  // Auth Wall
+  if (!currentUser) {
+    return (
+      <AuthScreen
+        onAuthSuccess={(user) => {
+          setCurrentUser(user);
+        }}
+      />
+    );
+  }
+
   if (!repo) {
     return (
       <div className="min-h-screen bg-black text-neutral-100">
@@ -298,7 +310,7 @@ export default function RepoDetailPage({
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
             <div className="flex items-start gap-4">
               <img
-                src={repo.ownerAvatar || `https://avatars.githubusercontent.com/u/104193851?v=4`}
+                src={repo.ownerAvatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${repo.owner}`}
                 alt={repo.owner}
                 className="w-12 h-12 rounded-2xl object-cover ring-1 ring-white/20"
               />

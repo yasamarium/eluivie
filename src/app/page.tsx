@@ -15,10 +15,13 @@ import {
   Sparkles,
   ArrowUpRight,
   Plus,
+  User as UserIcon,
+  CheckCircle2,
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { ActivityFeed } from '@/components/ActivityFeed';
 import { NewRepoModal } from '@/components/NewRepoModal';
+import { AuthScreen } from '@/components/AuthScreen';
 
 const LANGUAGE_COLORS: Record<string, string> = {
   TypeScript: '#3178c6',
@@ -35,6 +38,7 @@ const LANGUAGE_COLORS: Record<string, string> = {
 
 export default function HomePage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [repos, setRepos] = useState<any[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
   const [search, setSearch] = useState('');
@@ -42,19 +46,52 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [newRepoOpen, setNewRepoOpen] = useState(false);
 
+  // 1. Initial Auth Check (Check localStorage first for instant speed, then verify with /api/auth/me)
   useEffect(() => {
-    async function loadData() {
+    async function checkUser() {
       try {
-        const [userRes, reposRes, actRes] = await Promise.all([
-          fetch('/api/auth/me'),
+        if (typeof window !== 'undefined') {
+          const cached = localStorage.getItem('eluivie_user');
+          if (cached) {
+            try {
+              setCurrentUser(JSON.parse(cached));
+            } catch {}
+          }
+        }
+
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          setCurrentUser(data.user);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('eluivie_user', JSON.stringify(data.user));
+          }
+        } else {
+          setCurrentUser(null);
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('eluivie_user');
+          }
+        }
+      } catch (err) {
+        console.error('Auth verification error:', err);
+      } finally {
+        setCheckingAuth(false);
+      }
+    }
+    checkUser();
+  }, []);
+
+  // 2. Load repos and activity once authenticated
+  useEffect(() => {
+    if (!currentUser) return;
+
+    async function loadData() {
+      setLoading(true);
+      try {
+        const [reposRes, actRes] = await Promise.all([
           fetch('/api/repos'),
           fetch('/api/activity'),
         ]);
-
-        const userData = await userRes.json();
-        if (userData.authenticated) {
-          setCurrentUser(userData.user);
-        }
 
         const reposData = await reposRes.json();
         if (reposData.repos) {
@@ -66,22 +103,19 @@ export default function HomePage() {
           setActivities(actData.feed);
         }
       } catch (err) {
-        console.error('Failed to load home data:', err);
+        console.error('Failed to load dashboard data:', err);
       } finally {
         setLoading(false);
       }
     }
     loadData();
-  }, []);
+  }, [currentUser]);
 
   const handleStarToggle = async (e: React.MouseEvent, owner: string, name: string) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!currentUser) {
-      alert('Please sign in to star repositories');
-      return;
-    }
+    if (!currentUser) return;
 
     try {
       const res = await fetch(`/api/repos/${owner}/${name}/star`, { method: 'POST' });
@@ -107,6 +141,29 @@ export default function HomePage() {
     }
   };
 
+  // While verifying session
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-black text-neutral-100 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+          <span className="text-xs text-neutral-500 font-medium tracking-tight">eluivie</span>
+        </div>
+      </div>
+    );
+  }
+
+  // MANDATORY AUTH WALL: Must be logged in to use Eluivie
+  if (!currentUser) {
+    return (
+      <AuthScreen
+        onAuthSuccess={(user) => {
+          setCurrentUser(user);
+        }}
+      />
+    );
+  }
+
   const filteredRepos = repos.filter((r) => {
     const matchesSearch =
       r.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -130,13 +187,13 @@ export default function HomePage() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.05] border border-white/[0.08] text-[11px] text-neutral-300 mb-3">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>GitHub Serverless DB Engine Active</span>
+                <span>Connected as @{currentUser.username}</span>
               </div>
               <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white">
                 eluivie
               </h1>
               <p className="text-sm md:text-base text-neutral-400 mt-2 max-w-xl">
-                Minimalist iOS-themed Git cloud ecosystem powered by fine-grained GitHub database repositories.
+                Minimalist iOS-themed Git cloud ecosystem powered by distributed GitHub database engines.
               </p>
             </div>
 
@@ -174,18 +231,24 @@ export default function HomePage() {
                 <span className="text-[11px] font-medium uppercase tracking-wider">DB Repositories</span>
                 <Database className="w-4 h-4 text-emerald-400" />
               </div>
-              <div className="text-2xl font-bold text-white">5 Active</div>
-              <div className="text-[10px] text-neutral-500 mt-1">Users • Repos • Issues • Feed • Storage</div>
+              <div className="text-2xl font-bold text-white">5 Engines</div>
+              <div className="text-[10px] text-neutral-500 mt-1">Users • Repos • Issues • Activity • Storage</div>
             </div>
 
-            <div className="p-4 rounded-3xl ios-glass-card border border-white/[0.07]">
+            <Link
+              href={`/profile/${currentUser.username}`}
+              className="p-4 rounded-3xl ios-glass-card border border-white/[0.07] hover:border-white/[0.18] transition-all group"
+            >
               <div className="flex items-center justify-between text-neutral-400 mb-2">
-                <span className="text-[11px] font-medium uppercase tracking-wider">Ecosystem Owner</span>
-                <Sparkles className="w-4 h-4 text-cyan-400" />
+                <span className="text-[11px] font-medium uppercase tracking-wider">Your Profile</span>
+                <UserIcon className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
               </div>
-              <div className="text-lg font-bold text-white truncate">@yasamarium</div>
-              <div className="text-[10px] text-neutral-500 mt-1">Root administrator</div>
-            </div>
+              <div className="text-lg font-bold text-white truncate">@{currentUser.username}</div>
+              <div className="text-[10px] text-emerald-400 mt-1 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                <span>Active Member</span>
+              </div>
+            </Link>
 
             <div className="p-4 rounded-3xl ios-glass-card border border-white/[0.07]">
               <div className="flex items-center justify-between text-neutral-400 mb-2">

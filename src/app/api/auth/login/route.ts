@@ -1,29 +1,34 @@
 import { NextResponse } from 'next/server';
-import { getUserByUsername, logActivity } from '@/lib/db';
-import { verifyPassword, createSession, ensureOwnerAccount } from '@/lib/auth';
+import { getUserByIdentifier, logActivity } from '@/lib/db';
+import { verifyPassword, createSession } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
-    const { username, password } = await req.json();
+    const body = await req.json();
+    const identifier = (body.username || body.email || body.identifier || '').trim();
+    const password = body.password;
 
-    if (!username || !password) {
+    if (!identifier || !password) {
       return NextResponse.json(
-        { error: 'Username and password are required' },
+        { error: 'Please enter your username/email and password' },
         { status: 400 }
       );
     }
 
-    const cleanUsername = username.toLowerCase().trim();
-    await ensureOwnerAccount();
-
-    const user = await getUserByUsername(cleanUsername);
+    const user = await getUserByIdentifier(identifier);
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'No account found with this username or email' },
+        { status: 401 }
+      );
     }
 
     const valid = await verifyPassword(password, user.passwordHash);
     if (!valid) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Incorrect password. Please try again.' },
+        { status: 401 }
+      );
     }
 
     const sessionToken = await createSession(user.username);
@@ -31,7 +36,7 @@ export async function POST(req: Request) {
     await logActivity({
       type: 'user_registered',
       actor: user.username,
-      details: 'Logged into Eluivie session',
+      details: 'Logged into session',
     });
 
     const { passwordHash, ...safeUser } = user;

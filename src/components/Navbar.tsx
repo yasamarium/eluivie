@@ -110,7 +110,7 @@ export function Navbar({ currentUser, onUserChange }: NavbarProps) {
                   className="flex items-center gap-2 p-1 pr-2.5 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] transition-all"
                 >
                   <img
-                    src={currentUser.avatarUrl || 'https://avatars.githubusercontent.com/u/104193851?v=4'}
+                    src={currentUser.avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${currentUser.username}`}
                     alt={currentUser.username}
                     className="w-6 h-6 rounded-full object-cover ring-1 ring-white/20"
                   />

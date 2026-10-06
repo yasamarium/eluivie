@@ -8,7 +8,8 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const search = searchParams.get('q')?.toLowerCase();
 
-    const repos = await fetchUserRepos();
+    const allRepos = await fetchUserRepos();
+    const repos = allRepos.filter((r) => !r.name.startsWith('eluivie-db-'));
 
     // Enhance with database stars/metadata where available
     const enriched = await Promise.all(
