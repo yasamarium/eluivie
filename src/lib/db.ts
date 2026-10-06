@@ -4,8 +4,47 @@
  * Supports document store, activity feeds, release storage and binary uploads.
  */
 
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
-const OWNER = process.env.GITHUB_OWNER || 'yasamarium';
+import fs from 'fs';
+import path from 'path';
+
+export function getGithubToken(): string {
+  if (process.env.GITHUB_TOKEN && process.env.GITHUB_TOKEN.trim().length > 0) {
+    return process.env.GITHUB_TOKEN.trim().replace(/^['"]|['"]$/g, '');
+  }
+
+  // Fallback: Read directly from .env.local file in Node.js server environment
+  try {
+    const envPath = path.join(process.cwd(), '.env.local');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8');
+      const match = content.match(/GITHUB_TOKEN\s*=\s*([^\r\n]+)/);
+      if (match && match[1]) {
+        const val = match[1].trim().replace(/^['"]|['"]$/g, '');
+        process.env.GITHUB_TOKEN = val;
+        return val;
+      }
+    }
+  } catch {}
+
+  return '';
+}
+
+export function getOwner(): string {
+  if (process.env.GITHUB_OWNER && process.env.GITHUB_OWNER.trim().length > 0) {
+    return process.env.GITHUB_OWNER.trim().replace(/^['"]|['"]$/g, '');
+  }
+  return 'yasamarium';
+}
+
+export function getDbHeaders(extra: Record<string, string> = {}) {
+  const token = getGithubToken();
+  return {
+    Authorization: `Bearer ${token}`,
+    'User-Agent': 'eluivie-db-engine',
+    Accept: 'application/vnd.github+json',
+    ...extra,
+  };
+}
 
 export const REPOS = {
   USERS: process.env.DB_USERS_REPO || 'eluivie-db-users',
@@ -25,12 +64,12 @@ interface CacheEntry {
 const memoryCache = new Map<string, CacheEntry>();
 const CACHE_TTL_MS = 15000; // 15 seconds cache
 
-function getCacheKey(repo: string, path: string): string {
-  return `${repo}:${path}`;
+function getCacheKey(repo: string, filePath: string): string {
+  return `${repo}:${filePath}`;
 }
 
-export async function fetchFromGitHub(repo: string, path: string, options: { bypassCache?: boolean } = {}) {
-  const cacheKey = getCacheKey(repo, path);
+export async function fetchFromGitHub(repo: string, filePath: string, options: { bypassCache?: boolean } = {}) {
+  const cacheKey = getCacheKey(repo, filePath);
   if (!options.bypassCache) {
     const cached = memoryCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
@@ -38,13 +77,10 @@ export async function fetchFromGitHub(repo: string, path: string, options: { byp
     }
   }
 
-  const url = `https://api.github.com/repos/${OWNER}/${repo}/contents/${path}`;
+  const owner = getOwner();
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
   const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      'User-Agent': 'eluivie-db-engine',
-      Accept: 'application/vnd.github+json',
-    },
+    headers: getDbHeaders(),
     cache: 'no-store',
   });
 
@@ -85,17 +121,18 @@ export async function fetchFromGitHub(repo: string, path: string, options: { byp
 
 export async function saveToGitHub(
   repo: string,
-  path: string,
+  filePath: string,
   data: any,
   commitMessage: string,
   sha?: string
 ) {
-  const url = `https://api.github.com/repos/${OWNER}/${repo}/contents/${path}`;
+  const owner = getOwner();
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
   let currentSha = sha;
 
   if (!currentSha) {
     // Attempt to get existing sha
-    const existing = await fetchFromGitHub(repo, path, { bypassCache: true });
+    const existing = await fetchFromGitHub(repo, filePath, { bypassCache: true });
     if (existing?.sha) {
       currentSha = existing.sha;
     }
@@ -114,23 +151,20 @@ export async function saveToGitHub(
 
   const res = await fetch(url, {
     method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      'User-Agent': 'eluivie-db-engine',
+    headers: getDbHeaders({
       'Content-Type': 'application/json',
-      Accept: 'application/vnd.github+json',
-    },
+    }),
     body: JSON.stringify(body),
   });
 
   if (!res.ok) {
     const err = await res.text();
-    throw new Error(`Failed to commit file to ${repo}/${path}: ${res.status} - ${err}`);
+    throw new Error(`Failed to commit file to ${repo}/${filePath}: ${res.status} - ${err}`);
   }
 
   const resJson = await res.json();
   // Update cache
-  const cacheKey = getCacheKey(repo, path);
+  const cacheKey = getCacheKey(repo, filePath);
   memoryCache.set(cacheKey, {
     data: data,
     sha: resJson.content?.sha,
@@ -140,41 +174,36 @@ export async function saveToGitHub(
   return resJson;
 }
 
-export async function deleteFromGitHub(repo: string, path: string, commitMessage: string) {
-  const existing = await fetchFromGitHub(repo, path, { bypassCache: true });
+export async function deleteFromGitHub(repo: string, filePath: string, commitMessage: string) {
+  const existing = await fetchFromGitHub(repo, filePath, { bypassCache: true });
   if (!existing?.sha) {
     return false;
   }
 
-  const url = `https://api.github.com/repos/${OWNER}/${repo}/contents/${path}`;
+  const owner = getOwner();
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
   const res = await fetch(url, {
     method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      'User-Agent': 'eluivie-db-engine',
+    headers: getDbHeaders({
       'Content-Type': 'application/json',
-      Accept: 'application/vnd.github+json',
-    },
+    }),
     body: JSON.stringify({
       message: commitMessage,
       sha: existing.sha,
     }),
   });
 
-  const cacheKey = getCacheKey(repo, path);
+  const cacheKey = getCacheKey(repo, filePath);
   memoryCache.delete(cacheKey);
 
   return res.ok;
 }
 
-export async function listDirectory(repo: string, path: string = '') {
-  const url = `https://api.github.com/repos/${OWNER}/${repo}/contents/${path}`;
+export async function listDirectory(repo: string, dirPath: string = '') {
+  const owner = getOwner();
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${dirPath}`;
   const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      'User-Agent': 'eluivie-db-engine',
-      Accept: 'application/vnd.github+json',
-    },
+    headers: getDbHeaders(),
     cache: 'no-store',
   });
 
@@ -269,7 +298,6 @@ export async function getSessionRecord(token: string): Promise<SessionRecord | n
   if (!res || !res.data) return null;
   const session = res.data as SessionRecord;
   if (Date.now() > session.expiresAt) {
-    // Expired
     return null;
   }
   return session;
@@ -288,7 +316,7 @@ export interface RepoMetaRecord {
   owner: string;
   description: string;
   isPrivate: boolean;
-  stars: string[]; // usernames
+  stars: string[];
   forks: number;
   topics: string[];
   createdAt: string;
@@ -360,26 +388,25 @@ export interface IssueRecord {
 }
 
 export async function getIssues(owner: string, repo: string): Promise<IssueRecord[]> {
-  const path = `issues/${owner.toLowerCase()}/${repo.toLowerCase()}`;
-  const items = await listDirectory(REPOS.ISSUES, path);
+  const dirPath = `issues/${owner.toLowerCase()}/${repo.toLowerCase()}`;
+  const items = await listDirectory(REPOS.ISSUES, dirPath);
   const issues: IssueRecord[] = [];
   for (const item of items) {
     if (item.name.endsWith('.json')) {
-      const res = await fetchFromGitHub(REPOS.ISSUES, `${path}/${item.name}`);
+      const res = await fetchFromGitHub(REPOS.ISSUES, `${dirPath}/${item.name}`);
       if (res && res.data) {
         issues.push(res.data as IssueRecord);
       }
     }
   }
-  // Sort descending by number
   return issues.sort((a, b) => b.number - a.number);
 }
 
 export async function saveIssue(issue: IssueRecord): Promise<void> {
-  const path = `issues/${issue.repoOwner.toLowerCase()}/${issue.repoName.toLowerCase()}/${issue.number}.json`;
+  const filePath = `issues/${issue.repoOwner.toLowerCase()}/${issue.repoName.toLowerCase()}/${issue.number}.json`;
   await saveToGitHub(
     REPOS.ISSUES,
-    path,
+    filePath,
     issue,
     `Save issue #${issue.number} on ${issue.repoOwner}/${issue.repoName}`
   );
@@ -442,13 +469,9 @@ export interface ReleaseAssetInfo {
 }
 
 export async function getOrCreateRelease(tag: string = 'media-vault'): Promise<any> {
-  // Check if release exists
-  const listRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPOS.STORAGE}/releases`, {
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      'User-Agent': 'eluivie-storage',
-      Accept: 'application/vnd.github+json',
-    },
+  const owner = getOwner();
+  const listRes = await fetch(`https://api.github.com/repos/${owner}/${REPOS.STORAGE}/releases`, {
+    headers: getDbHeaders(),
   });
 
   if (listRes.ok) {
@@ -457,15 +480,11 @@ export async function getOrCreateRelease(tag: string = 'media-vault'): Promise<a
     if (found) return found;
   }
 
-  // Create new release
-  const createRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPOS.STORAGE}/releases`, {
+  const createRes = await fetch(`https://api.github.com/repos/${owner}/${REPOS.STORAGE}/releases`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      'User-Agent': 'eluivie-storage',
+    headers: getDbHeaders({
       'Content-Type': 'application/json',
-      Accept: 'application/vnd.github+json',
-    },
+    }),
     body: JSON.stringify({
       tag_name: tag,
       name: `Eluivie Media Storage Release [${tag}]`,
@@ -489,32 +508,28 @@ export async function uploadAssetToStorage(
   contentType: string,
   tag: string = 'media-vault'
 ): Promise<ReleaseAssetInfo> {
+  const owner = getOwner();
   const release = await getOrCreateRelease(tag);
   const cleanFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
 
-  const uploadUrl = `https://uploads.github.com/repos/${OWNER}/${REPOS.STORAGE}/releases/${release.id}/assets?name=${encodeURIComponent(cleanFileName)}`;
+  const uploadUrl = `https://uploads.github.com/repos/${owner}/${REPOS.STORAGE}/releases/${release.id}/assets?name=${encodeURIComponent(cleanFileName)}`;
 
   const res = await fetch(uploadUrl, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      'User-Agent': 'eluivie-storage',
+    headers: getDbHeaders({
       'Content-Type': contentType,
-    },
+    }),
     body: new Uint8Array(buffer),
   });
 
   if (!res.ok) {
-    // If asset already exists, fall back to direct contents API or timestamped name
     const timestampName = `${Date.now()}_${cleanFileName}`;
-    const fallbackUrl = `https://uploads.github.com/repos/${OWNER}/${REPOS.STORAGE}/releases/${release.id}/assets?name=${encodeURIComponent(timestampName)}`;
+    const fallbackUrl = `https://uploads.github.com/repos/${owner}/${REPOS.STORAGE}/releases/${release.id}/assets?name=${encodeURIComponent(timestampName)}`;
     const retryRes = await fetch(fallbackUrl, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
-        'User-Agent': 'eluivie-storage',
+      headers: getDbHeaders({
         'Content-Type': contentType,
-      },
+      }),
       body: new Uint8Array(buffer),
     });
     if (!retryRes.ok) {
@@ -545,13 +560,10 @@ export async function uploadAssetToStorage(
 }
 
 export async function listAllStorageAssets(): Promise<ReleaseAssetInfo[]> {
-  const url = `https://api.github.com/repos/${OWNER}/${REPOS.STORAGE}/releases`;
+  const owner = getOwner();
+  const url = `https://api.github.com/repos/${owner}/${REPOS.STORAGE}/releases`;
   const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      'User-Agent': 'eluivie-storage',
-      Accept: 'application/vnd.github+json',
-    },
+    headers: getDbHeaders(),
   });
 
   if (!res.ok) return [];

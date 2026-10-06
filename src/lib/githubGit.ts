@@ -4,12 +4,11 @@
  * File browsing, code viewing, commits, branch management, repo creation.
  */
 
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
-const OWNER = process.env.GITHUB_OWNER || 'yasamarium';
+import { getGithubToken, getOwner } from './db';
 
 const headers = {
   get Authorization() {
-    return `Bearer ${process.env.GITHUB_TOKEN || ''}`;
+    return `Bearer ${getGithubToken()}`;
   },
   'User-Agent': 'eluivie-app',
   Accept: 'application/vnd.github+json',
@@ -33,9 +32,10 @@ export interface GitRepoSummary {
   cloneUrl: string;
 }
 
-export async function fetchUserRepos(username: string = OWNER): Promise<GitRepoSummary[]> {
+export async function fetchUserRepos(username?: string): Promise<GitRepoSummary[]> {
+  const targetUser = username || getOwner();
   try {
-    const res = await fetch(`https://api.github.com/users/${username}/repos?per_page=100&sort=pushed`, {
+    const res = await fetch(`https://api.github.com/users/${targetUser}/repos?per_page=100&sort=pushed`, {
       headers,
       cache: 'no-store',
     });
