@@ -22,6 +22,7 @@ import { Navbar } from '@/components/Navbar';
 import { ActivityFeed } from '@/components/ActivityFeed';
 import { NewRepoModal } from '@/components/NewRepoModal';
 import { AuthScreen } from '@/components/AuthScreen';
+import { EluivieLogo } from '@/components/EluivieLogo';
 
 const LANGUAGE_COLORS: Record<string, string> = {
   TypeScript: '#3178c6',
@@ -189,11 +190,11 @@ export default function HomePage() {
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span>Connected as @{currentUser.username}</span>
               </div>
-              <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white">
-                eluivie
-              </h1>
+              <div className="flex items-center gap-3">
+                <EluivieLogo size="xl" showText={true} />
+              </div>
               <p className="text-sm md:text-base text-neutral-400 mt-2 max-w-xl">
-                Minimalist iOS-themed Git cloud ecosystem powered by distributed GitHub database engines.
+                High-Performance Autonomous Cloud Code, Issue Tracking & Artifact Engine.
               </p>
             </div>
 
@@ -215,7 +216,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* iOS Dashboard Stat Cards */}
+          {/* Standalone Dashboard Stat Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
             <div className="p-4 rounded-3xl ios-glass-card border border-white/[0.07]">
               <div className="flex items-center justify-between text-neutral-400 mb-2">
@@ -228,11 +229,11 @@ export default function HomePage() {
 
             <div className="p-4 rounded-3xl ios-glass-card border border-white/[0.07]">
               <div className="flex items-center justify-between text-neutral-400 mb-2">
-                <span className="text-[11px] font-medium uppercase tracking-wider">DB Repositories</span>
+                <span className="text-[11px] font-medium uppercase tracking-wider">Data Clusters</span>
                 <Database className="w-4 h-4 text-emerald-400" />
               </div>
-              <div className="text-2xl font-bold text-white">5 Engines</div>
-              <div className="text-[10px] text-neutral-500 mt-1">Users • Repos • Issues • Activity • Storage</div>
+              <div className="text-2xl font-bold text-white">5 Active</div>
+              <div className="text-[10px] text-neutral-500 mt-1">Users • Repos • Issues • Activity • Vault</div>
             </div>
 
             <Link
@@ -252,11 +253,11 @@ export default function HomePage() {
 
             <div className="p-4 rounded-3xl ios-glass-card border border-white/[0.07]">
               <div className="flex items-center justify-between text-neutral-400 mb-2">
-                <span className="text-[11px] font-medium uppercase tracking-wider">Cloud Engine</span>
+                <span className="text-[11px] font-medium uppercase tracking-wider">Object Vault</span>
                 <HardDrive className="w-4 h-4 text-purple-400" />
               </div>
-              <div className="text-2xl font-bold text-white">Releases</div>
-              <div className="text-[10px] text-neutral-500 mt-1">Zero-cost blob media engine</div>
+              <div className="text-2xl font-bold text-white">Blob Engine</div>
+              <div className="text-[10px] text-neutral-500 mt-1">Distributed media storage</div>
             </div>
           </div>
         </div>
@@ -442,7 +443,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xs font-bold text-white">Dedicated Storage Cluster</h3>
               <p className="text-[11px] text-neutral-400">
-                Media, avatars and binary distribution artifacts are stored permanently inside <code className="text-pink-300">eluivie-db-storage</code> releases.
+                Media, avatars and binary distribution artifacts are securely vaulted permanently in the Eluivie High-Speed Object Store.
               </p>
               <Link
                 href="/storage"

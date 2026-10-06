@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { AuthModal } from './AuthModal';
 import { NewRepoModal } from './NewRepoModal';
+import { EluivieLogo } from './EluivieLogo';
 
 interface NavbarProps {
   currentUser: any;
@@ -53,14 +54,8 @@ export function Navbar({ currentUser, onUserChange }: NavbarProps) {
           className="pointer-events-auto flex items-center justify-between gap-3 md:gap-6 px-4 py-2.5 rounded-full ios-glass shadow-2xl border border-white/[0.09] max-w-4xl w-full"
         >
           {/* Logo & Brand */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-cyan-500 via-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
-              <Sparkles className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="font-semibold text-sm tracking-tight text-white group-hover:text-blue-400 transition-colors">
-              eluivie
-            </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <Link href="/" className="group hover:opacity-90 transition-opacity">
+            <EluivieLogo size="sm" showText={true} />
           </Link>
 
           {/* Navigation Items */}

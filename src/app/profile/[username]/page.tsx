@@ -69,7 +69,7 @@ export default function ProfilePage({
 
         const rData = await reposRes.json();
         if (rData.repos) {
-          // If viewing yasamarium or any user, match owner
+          // Filter user repositories
           setUserRepos(rData.repos);
         }
 

@@ -110,7 +110,7 @@ export default function StoragePage() {
                   Media & Asset Vault
                 </h1>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Serverless binary blob storage engine backed by GitHub Releases on <code className="text-pink-300">eluivie-db-storage</code>
+                  Decentralized High-Performance Object Storage & Media Vault Engine
                 </p>
               </div>
             </div>
@@ -149,7 +149,7 @@ export default function StoragePage() {
             <HardDrive className="w-10 h-10 text-neutral-600 mx-auto mb-2" />
             <h3 className="text-sm font-semibold text-neutral-300">No assets in storage</h3>
             <p className="text-xs text-neutral-500 max-w-sm mx-auto">
-              Upload images, binary files, releases or archives to store them forever on GitHub Releases CDN.
+              Upload images, binary files, builds, or distribution archives to store them permanently in Eluivie Vault.
             </p>
             <button
               onClick={() => setUploadOpen(true)}

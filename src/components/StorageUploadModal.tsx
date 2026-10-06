@@ -94,7 +94,7 @@ export function StorageUploadModal({ isOpen, onClose, onSuccess }: StorageUpload
               </div>
               <div>
                 <h3 className="text-base font-bold">Upload to Storage Vault</h3>
-                <p className="text-[11px] text-neutral-400">Stores directly via GitHub Releases Engine</p>
+                <p className="text-[11px] text-neutral-400">Stores directly via Eluivie Vault Engine</p>
               </div>
             </div>
 

@@ -383,13 +383,13 @@ export default function RepoDetailPage({
                       <input
                         type="text"
                         readOnly
-                        value={repo.cloneUrl || `https://github.com/${owner}/${name}.git`}
+                        value={`git clone https://eluivie.app/${owner}/${name}.git`}
                         className="flex-1 bg-transparent text-neutral-300 font-mono text-[11px] truncate focus:outline-none"
                       />
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(
-                            repo.cloneUrl || `https://github.com/${owner}/${name}.git`
+                            `git clone https://eluivie.app/${owner}/${name}.git`
                           );
                           setCopiedClone(true);
                           setTimeout(() => setCopiedClone(false), 2000);
@@ -400,28 +400,23 @@ export default function RepoDetailPage({
                       </button>
                     </div>
 
-                    <a
-                      href={repo.htmlUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-3 flex items-center justify-between text-[11px] text-neutral-400 hover:text-white pt-2 border-t border-white/[0.06]"
-                    >
-                      <span>Open on GitHub</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
+                    <div className="mt-3 flex items-center justify-between text-[11px] text-neutral-400 pt-2 border-t border-white/[0.06]">
+                      <span className="font-mono text-[10px] text-neutral-500">Branch: {repo?.defaultBranch || 'main'}</span>
+                      <span className="text-[10px] text-emerald-400 font-medium">Ready to clone</span>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* iOS Segmented Navigation Tabs */}
+          {/* Navigation Tabs */}
           <div className="flex bg-neutral-900/90 p-1 rounded-2xl border border-white/[0.08] mt-6 max-w-md">
             {[
               { id: 'code', label: 'Code', icon: GitBranch },
               { id: 'issues', label: 'Issues', icon: AlertCircle, count: repo.openIssuesCount },
               { id: 'commits', label: 'Commits', icon: GitCommit },
-              { id: 'releases', label: 'Releases & Media', icon: HardDrive },
+              { id: 'releases', label: 'Artifacts & Media', icon: HardDrive },
             ].map((t) => {
               const active = tab === t.id;
               const Icon = t.icon;
@@ -846,14 +841,14 @@ export default function RepoDetailPage({
           </div>
         )}
 
-        {/* TAB 4: RELEASES & MEDIA ASSETS */}
+        {/* TAB 4: ARTIFACTS & MEDIA ASSETS */}
         {tab === 'releases' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-white">Releases & Media Engine</h3>
+                <h3 className="text-sm font-bold text-white">Artifacts & Media Vault</h3>
                 <p className="text-xs text-neutral-400">
-                  Store large binaries, distributions and media assets powered by GitHub Releases
+                  Store large binaries, distributions and media assets securely in Eluivie Object Store
                 </p>
               </div>
 
@@ -868,9 +863,9 @@ export default function RepoDetailPage({
 
             <div className="p-8 rounded-3xl ios-glass-card border border-white/[0.08] text-center space-y-3">
               <HardDrive className="w-8 h-8 text-pink-400 mx-auto mb-2" />
-              <h4 className="text-base font-bold text-white">Release Storage Connected</h4>
+              <h4 className="text-base font-bold text-white">Object Vault Connected</h4>
               <p className="text-xs text-neutral-400 max-w-md mx-auto">
-                Assets uploaded for this repository will be synchronized and linked to the <code className="text-pink-300">eluivie-db-storage</code> release engine.
+                Assets uploaded for this repository are automatically indexed and accessible across the Eluivie ecosystem.
               </p>
               <Link
                 href="/storage"

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Lock, User, Mail, Sparkles, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { EluivieLogo } from './EluivieLogo';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -88,12 +89,9 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
               <X className="w-4 h-4" />
             </button>
 
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-500 to-indigo-600 mb-3 shadow-lg shadow-blue-500/20">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold tracking-tight">eluivie</h2>
-              <p className="text-xs text-neutral-400 mt-1">iOS Minimalist Git Ecosystem</p>
+            <div className="flex flex-col items-center text-center mb-6">
+              <EluivieLogo size="md" showText={true} className="mb-1" />
+              <p className="text-xs text-neutral-400 font-medium">Cloud Code & Artifact Forge</p>
             </div>
 
             <div className="flex bg-neutral-900/80 p-1 rounded-2xl border border-white/[0.08] mb-6">

@@ -2,11 +2,11 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Eluivie - iOS Themed Git & Cloud Storage Platform',
+  title: 'Eluivie — Next-Generation Cloud Code & Artifact Platform',
   description:
-    'A minimalist, iOS-dark themed Git platform and serverless database engine powered by GitHub fine-grained token architecture.',
+    'High-performance standalone cloud repository forge, decentralized database engine and secure media vault.',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/icon.svg',
   },
 };
 

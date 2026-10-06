@@ -16,7 +16,7 @@ export function NewRepoModal({ isOpen, onClose, onSuccess }: NewRepoModalProps) 
   const [isPrivate, setIsPrivate] = useState(false);
   const [autoInit, setAutoInit] = useState(true);
   const [tagInput, setTagInput] = useState('');
-  const [tags, setTags] = useState<string[]>(['typescript', 'ios']);
+  const [tags, setTags] = useState<string[]>(['typescript', 'cloud']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -130,7 +130,7 @@ export function NewRepoModal({ isOpen, onClose, onSuccess }: NewRepoModalProps) 
                   type="text"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="A high performance iOS web application"
+                  placeholder="A high performance modern application"
                   className="w-full ios-input px-3.5 py-2.5 text-sm"
                 />
               </div>

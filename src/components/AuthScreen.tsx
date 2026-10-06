@@ -14,6 +14,7 @@ import {
   Shield,
   Layers,
 } from 'lucide-react';
+import { EluivieLogo } from './EluivieLogo';
 
 interface AuthScreenProps {
   onAuthSuccess: (user: any) => void;
@@ -97,13 +98,10 @@ export function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
         className="relative w-full max-w-md my-auto rounded-3xl ios-glass-card p-7 md:p-8 text-white shadow-2xl border border-white/[0.09] z-10"
       >
         {/* Brand Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-500 to-indigo-600 mb-3 shadow-lg shadow-blue-500/25">
-            <Sparkles className="w-7 h-7 text-white" />
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white">eluivie</h1>
-          <p className="text-xs text-neutral-400 mt-1">
-            iOS Themed Git Cloud Platform
+        <div className="flex flex-col items-center text-center mb-7">
+          <EluivieLogo size="lg" showText={true} className="mb-2" />
+          <p className="text-xs text-neutral-400 font-medium">
+            Next-Generation Cloud Code & Artifact Platform
           </p>
         </div>
 

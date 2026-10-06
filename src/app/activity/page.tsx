@@ -90,7 +90,7 @@ export default function ActivityPage() {
             <div>
               <h1 className="text-2xl font-bold text-white tracking-tight">Ecosystem Activity</h1>
               <p className="text-xs text-neutral-400 mt-1">
-                Real-time event stream synced to <code className="text-pink-300">eluivie-db-activity</code>
+                Real-time event stream across repositories, commits, and team interactions
               </p>
             </div>
           </div>

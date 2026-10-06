@@ -1,0 +1,33 @@
+<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="eluivie-grad-1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#38BDF8" />
+      <stop offset="50%" stopColor="#6366F1" />
+      <stop offset="100%" stopColor="#A855F7" />
+    </linearGradient>
+    <radialGradient id="eluivie-center-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.6" />
+      <stop offset="100%" stopColor="#38BDF8" stopOpacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect
+    x="2"
+    y="2"
+    width="44"
+    height="44"
+    rx="12"
+    fill="#000000"
+    stroke="url(#eluivie-grad-1)"
+    stroke-width="2.5"
+  />
+
+  <circle cx="24" cy="24" r="14" fill="url(#eluivie-center-glow)" />
+
+  <path
+    d="M 16 15 H 32 C 33.1 15 34 15.9 34 17 C 34 18.1 33.1 19 32 19 H 20 V 22 H 29 C 30.1 22 31 22.9 31 24 C 31 25.1 30.1 26 29 26 H 20 V 29 H 32 C 33.1 29 34 29.9 34 31 C 34 32.1 33.1 33 32 33 H 16 C 14.9 33 14 32.1 14 31 V 17 C 14 15.9 14.9 15 16 15 Z"
+    fill="url(#eluivie-grad-1)"
+  />
+
+  <circle cx="34" cy="24" r="2.5" fill="#38BDF8" />
+</svg>
